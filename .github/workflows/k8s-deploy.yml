@@ -1,0 +1,42 @@
+name: Kubernetes Auto Deploy
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+
+      - name: Update backend deployment
+        run: |
+          kubectl set image deployment/backend backend=${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
+          kubectl rollout restart deployment/backend
+
+      - name: Update frontend deployment
+        run: |
+          kubectl set image deployment/frontend frontend=${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
+          kubectl rollout restart deployment/frontend
+
+      - name: Update worker deployment
+        run: |
+          kubectl set image deployment/worker worker=${{ secrets.DOCKERHUB_USERNAME }}/worker:latest
+          kubectl rollout restart deployment/worker
+
+      - name: Verify pods
+        run: |
+          kubectl get pods -o wide
