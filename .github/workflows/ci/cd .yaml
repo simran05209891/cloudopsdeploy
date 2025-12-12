@@ -1,4 +1,4 @@
-name: Full CI-CD Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -7,11 +7,12 @@ on:
     branches: ["main"]
 
 jobs:
-  build-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Set up Node
@@ -19,75 +20,29 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install & Build Backend
+      # Install Dependencies for all services
+      - name: Install Dependencies
         run: |
           cd backend
           npm install
+          cd ../frontend
+          npm install
+          cd ../worker
+          npm install
+
+      # Build each service
+      - name: Build Backend
+        run: |
+          cd backend
           npm run build
 
-      - name: Install & Build Frontend
+      - name: Build Frontend
         run: |
           cd frontend
-          npm install
           npm run build
 
-      - name: Install & Build Worker
+      - name: Build Worker
         run: |
           cd worker
-          npm install
           npm run build
 
-  docker-build-push:
-    needs: build-test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      # Build and Push Backend Image
-      - name: Build & Push Backend Image
-        run: |
-          docker build -t simran/cloudopsdeploy-backend:latest ./backend
-          docker push simran/cloudopsdeploy-backend:latest
-
-      # Build and Push Frontend Image
-      - name: Build & Push Frontend Image
-        run: |
-          docker build -t simran/cloudopsdeploy-frontend:latest ./frontend
-          docker push simran/cloudopsdeploy-frontend:latest
-
-      # Build & Push Worker Image
-      - name: Build & Push Worker Image
-        run: |
-          docker build -t simran/cloudopsdeploy-worker:latest ./worker
-          docker push simran/cloudopsdeploy-worker:latest
-
-  deploy:
-    needs: docker-build-push
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      # Connect to Kubernetes
-      - name: Set up kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG_CONTENT }}" > ~/.kube/config
-
-      # Apply Kubernetes manifests
-      - name: Deploy to Kubernetes
-        run: |
-          kubectl apply -f infra/k8s/
-          kubectl rollout restart deployment backend
-          kubectl rollout restart deployment frontend
-          kubectl delete job worker --ignore-not-found=true
-          kubectl apply -f infra/k8s/worker-job.yaml
