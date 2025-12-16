@@ -3,10 +3,13 @@ FROM node:18
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+
+# IMPORTANT: install devDependencies also
+RUN npm install --include=dev
 
 COPY . .
 
-RUN npx tsc
+# Build TypeScript
+RUN ./node_modules/.bin/tsc
 
 CMD ["node", "dist/worker.js"]
