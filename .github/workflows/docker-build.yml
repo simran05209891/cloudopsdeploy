@@ -5,30 +5,30 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
+  docker:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Backend Image
+      - name: Build & Push Backend
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest ./backend
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
+          docker build -t simrananand05/cloudops-backend ./backend
+          docker push simrananand05/cloudops-backend
 
-      - name: Build Frontend Image
+      - name: Build & Push Frontend
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest ./frontend
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
+          docker build -t simrananand05/cloudops-frontend ./frontend
+          docker push simrananand05/cloudops-frontend
 
-      - name: Build Worker Image
+      - name: Build & Push Worker
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/worker:latest ./worker
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/worker:latest
+          docker build -t simrananand05/cloudops-worker ./worker
+          docker push simrananand05/cloudops-worker
