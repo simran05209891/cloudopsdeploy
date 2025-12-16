@@ -20,15 +20,15 @@ jobs:
 
       - name: Build & Push Backend
         run: |
-          docker build -t simrananand05/cloudops-backend ./backend
-          docker push simrananand05/cloudops-backend
+          docker build -t simrananand05/cloudops-backend:latest ./backend
+          docker push simrananand05/cloudops-backend:latest
 
       - name: Build & Push Frontend
         run: |
-          docker build -t simrananand05/cloudops-frontend ./frontend
-          docker push simrananand05/cloudops-frontend
+          docker build -t simrananand05/cloudops-frontend:latest ./frontend
+          docker push simrananand05/cloudops-frontend:latest
 
       - name: Build & Push Worker
         run: |
-          docker build -t simrananand05/cloudops-worker ./worker
-          docker push simrananand05/cloudops-worker
+          docker build -t simrananand05/cloudops-worker:latest ./worker
+          docker push simrananand05/cloudops-worker:latest
